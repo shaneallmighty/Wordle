@@ -32,6 +32,10 @@ public class Lingo {
      */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+                    // Load custom font
+                    Font customTitleFont = loadCustomFont("burbank-big-black.ttf", 75f);
+                    Font customAnswerFont = loadCustomFont("bright-sunday-sans-serif.ttf", 25f);
+//                    Font customLabelFont = loadCustomFont("", 20f);
 
                     //Variables
                     String invoer;
@@ -69,14 +73,14 @@ public class Lingo {
 
                     textfieldTitel.setBackground(new Color(25,25,25));
                     textfieldTitel.setForeground(GREEN);
-                    textfieldTitel.setFont(new Font("Monospaced",Font.BOLD,75));
+                    textfieldTitel.setFont(customTitleFont);
                     textfieldTitel.setHorizontalAlignment(JLabel.CENTER);
                     textfieldTitel.setText("WORDLE!");
                     textfieldTitel.setOpaque(true);
 
                     textfieldAnswer.setBackground(new Color(25,25,25));
                     textfieldAnswer.setForeground(GREEN);
-                    textfieldAnswer.setFont(new Font("Arial",Font.BOLD,25));
+                    textfieldAnswer.setFont(customAnswerFont);
                     textfieldAnswer.setHorizontalAlignment(JLabel.CENTER);
                     textfieldAnswer.setText("............");
 
@@ -392,7 +396,15 @@ public class Lingo {
         return false;
     }
 
-
+    public static Font loadCustomFont(String fontPath, float size) {
+        try {
+            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath));
+            return customFont.deriveFont(size); // Set the size of the font
+        } catch (IOException | FontFormatException e) {
+            e.printStackTrace();
+            return new Font("Arial", Font.PLAIN, (int) size); // Fallback font
+        }
+    }
 
 }
 
