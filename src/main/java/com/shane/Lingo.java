@@ -2,19 +2,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  */
 
-package com.mycompany.lingo;
+package main.java.com.shane;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Scanner;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Random;
 import static java.awt.Color.*;
 
@@ -23,7 +19,7 @@ import static java.awt.Color.*;
  * @author Shane O'Callaghan
  */
 public class Lingo {
-   static String filePath = "WordList.txt";
+   static String filePath = "textFiles/WordList.txt";
    static String randomWord = RandomWordReader.getRandomWord(filePath);
    static String testWoord = randomWord; //testWoord is de string die geraden moet worden
 
@@ -33,8 +29,8 @@ public class Lingo {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
                     // Load custom font
-                    Font customTitleFont = loadCustomFont("burbank-big-black.ttf", 75f);
-                    Font customAnswerFont = loadCustomFont("bright-sunday-sans-serif.ttf", 25f);
+                    Font customTitleFont = loadCustomFont("fonts/burbank-big-black.ttf", 75f);
+                    Font customAnswerFont = loadCustomFont("fonts/bright-sunday-sans-serif.ttf", 25f);
 //                    Font customLabelFont = loadCustomFont("", 20f);
 
                     //Variables
@@ -155,14 +151,10 @@ public class Lingo {
                         }
 
                         // Check if word is in dictionary
-                        try {
-                            if (!isInDictionary(invoer, new Scanner(new File("DictionaryEN.txt")))) {
-                                    System.out.println(BG_RED + invoer + " is NOT in the dictionary" + RESET);
-                                    textfieldAnswer.setText(invoer + " is NOT in the dictionary");
-                                    continue;
-                            }
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
+                        if (!isInDictionary(invoer)) {
+                                System.out.println(BG_RED + invoer + " is NOT in the dictionary" + RESET);
+                                textfieldAnswer.setText(invoer + " is NOT in the dictionary");
+                                continue;
                         }
 
 
@@ -235,13 +227,10 @@ public class Lingo {
                     }
                 });
     }
-
-    //Checked of character een letter is
    public static boolean isLetter ( char letter){
             return (letter >= 'a' && letter <= 'z' || letter >= 'A' && letter <= 'Z');
         }
 
-    //Geef het aantal letters van een String
     public static int anLetters (String invoer){
             char[] letters = invoer.toCharArray();
             int anLetters = 0;
@@ -254,10 +243,17 @@ public class Lingo {
             return anLetters;
         }
 
-    // Method to get a random word from the file
     public class RandomWordReader {
-        public static String getRandomWord(String filePath) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        public static String getRandomWord(String resourcePath) {
+            // Use the class loader to load the resource
+            InputStream inputStream = RandomWordReader.class.getClassLoader().getResourceAsStream(resourcePath);
+
+            if (inputStream == null) {
+                System.out.println("Resource file not found: " + resourcePath);
+                return "Resource file not found.";
+            }
+
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
                 List<String> words = new ArrayList<>();
                 String line;
 
@@ -278,9 +274,8 @@ public class Lingo {
                 // Generate a random index
                 Random random = new Random();
                 int randomIndex = random.nextInt(words.size());
-
                 // Retrieve the random word
-                 return words.get(randomIndex);
+                return words.get(randomIndex);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -289,7 +284,6 @@ public class Lingo {
         }
     }
 
-    //custom inputDialog
     public static String showCustomInputDialog(JFrame parent, String message, int guesses) {
 
         // Check if the number of guesses has reached or exceeded the maximum limit
@@ -384,25 +378,47 @@ public class Lingo {
         return userInput[0]; // Return the user input
     }
 
+    public static boolean isInDictionary(String invoer) {
+        // Load the dictionary from the resources folder
+        InputStream dictionaryStream = Lingo.class.getClassLoader().getResourceAsStream("textFiles/DictionaryEN.txt");
 
-    public static boolean isInDictionary(String invoer, Scanner dictionary){
-        List<String> dictionaryList = new ArrayList<String>();
-        while(dictionary.hasNextLine()){
-            String line = dictionary.nextLine();
-            if(line.equals(invoer)){
-                return true;
+        if (dictionaryStream == null) {
+            System.out.println("Dictionary file not found.");
+            return false; // Or handle the error as needed
+        }
+
+        try (Scanner dictionary = new Scanner(dictionaryStream)) {
+            // Check each line in the dictionary
+            while (dictionary.hasNextLine()) {
+                String line = dictionary.nextLine().trim();
+                if (line.equalsIgnoreCase(invoer)) { // Use equalsIgnoreCase for case-insensitive comparison
+                    return true;
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }
 
-    public static Font loadCustomFont(String fontPath, float size) {
+    public static Font loadCustomFont(String fontResourcePath, float size) {
         try {
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath));
-            return customFont.deriveFont(size); // Set the size of the font
+            // Use the class loader to load the font resource as an InputStream
+            InputStream fontStream = Lingo.class.getClassLoader().getResourceAsStream(fontResourcePath);
+            if (fontStream == null) {
+                throw new IOException("Font resource not found: " + fontResourcePath);
+            }
+
+            // Create the font from the InputStream
+            Font customFont = Font.createFont(Font.TRUETYPE_FONT, fontStream);
+
+            // Return the font with the specified size
+            return customFont.deriveFont(size);
         } catch (IOException | FontFormatException e) {
             e.printStackTrace();
-            return new Font("Arial", Font.PLAIN, (int) size); // Fallback font
+
+            // Fallback font in case of failure
+            return new Font("Arial", Font.PLAIN, (int) size);
         }
     }
 

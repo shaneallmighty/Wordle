@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Lingo:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Lingo_jar</output-path>
+    <root id="archive" name="Lingo.jar">
+      <element id="module-output" name="Lingo" />
+    </root>
+  </artifact>
+</component>
